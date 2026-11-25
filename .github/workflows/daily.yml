@@ -1,0 +1,41 @@
+name: daily-predictions
+
+on:
+  schedule:
+    # UTC. Morning retrain and predictions, then three passes before the
+    # evening games to pick up fresh market prices and schedule changes.
+    - cron: "0 15 * * *"
+    - cron: "30 20 * * *"
+    - cron: "30 22 * * *"
+    - cron: "45 23 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: daily-predictions
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/pyproject.toml
+      - run: pip install -e pipeline pytest
+      - name: Download data and run tests
+        run: |
+          python -c "from nhlpred import data; data.download()"
+          pytest -q pipeline/tests
+      - name: Settle, retrain, predict
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m nhlpred.daily --no-download
+      - name: Publish model to Hugging Face
+        if: github.event.schedule == '0 15 * * *' || github.event_name == 'workflow_dispatch'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python -m nhlpred.publish

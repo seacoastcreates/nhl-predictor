@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --page: #f6f5f1;
+  --surface-1: #ffffff;
+  --line: #e4e2dc;
+  --track: #ecebe6;
+  --text-primary: #191919;
+  --text-secondary: #666666;
+  --series-1: #257de0; /* model */
+  --series-2: #f47230; /* market */
+  --muted-mark: #9a9a94; /* baseline / reference */
+  --good: #0aac23;
+  --critical: #dc3c3d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #101010;
+    --surface-1: #191919;
+    --line: #2e2e2e;
+    --track: #2a2a2a;
+    --text-primary: #efefef;
+    --text-secondary: #9c9c9c;
+    --series-1: #338ced;
+    --series-2: #e76624;
+    --muted-mark: #777777;
+  }
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface-1);
+  --color-line: var(--line);
+  --color-track: var(--track);
+  --color-ink: var(--text-primary);
+  --color-ink-2: var(--text-secondary);
+  --color-model: var(--series-1);
+  --color-market: var(--series-2);
+  --color-muted-mark: var(--muted-mark);
+  --color-good: var(--good);
+  --color-critical: var(--critical);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--page);
+  color: var(--text-primary);
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
