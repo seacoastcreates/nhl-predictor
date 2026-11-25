@@ -73,6 +73,9 @@ def set_market(conn, market: pd.DataFrame) -> int:
     WHERE game_id = %s AND source = 'live' AND home_win IS NULL AND %s < start_utc
       AND (market_quoted_utc IS NULL OR market_quoted_utc < %s)
     """
+    open_ids = {r[0] for r in conn.execute(
+        "SELECT game_id FROM predictions WHERE source = 'live' AND home_win IS NULL")}
+    market = market[market["game_id"].isin(open_ids)]
     n = 0
     with conn.cursor() as cur:
         for r in market.itertuples():
