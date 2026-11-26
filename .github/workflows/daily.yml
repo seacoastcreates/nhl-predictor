@@ -39,3 +39,9 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python -m nhlpred.publish
+      - name: Refresh the site's cached page
+        if: always()
+        run: |
+          curl -fsS -o /dev/null https://nhl.36dunes.com || true
+          sleep 20
+          curl -fsS -o /dev/null https://nhl.36dunes.com || true
