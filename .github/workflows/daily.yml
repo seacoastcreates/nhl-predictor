@@ -2,12 +2,11 @@ name: daily-predictions
 
 on:
   schedule:
-    # UTC. Morning retrain and predictions, then three passes before the
-    # evening games to pick up fresh market prices and schedule changes.
-    - cron: "0 15 * * *"
-    - cron: "30 20 * * *"
-    - cron: "30 22 * * *"
-    - cron: "45 23 * * *"
+    # Hourly, off the top of the hour. GitHub starts scheduled runs late (5 to 8
+    # hours on day one), so a few fixed times cannot promise a run before puck
+    # drop. Hourly means each game has many earlier attempts, including for
+    # afternoon starts. The job is idempotent and takes under a minute.
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 concurrency:
@@ -35,10 +34,12 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m nhlpred.daily --no-download
       - name: Publish model to Hugging Face
-        if: github.event.schedule == '0 15 * * *' || github.event_name == 'workflow_dispatch'
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python -m nhlpred.publish
+          EVENT: ${{ github.event_name }}
+        # once a day (the 15:00 UTC hour), or on a manual run
+        run: |
+          if [ "$EVENT" = workflow_dispatch ] || [ "$(date -u +%H)" = 15 ]; then python -m nhlpred.publish; fi
       - name: Refresh the site's cached page
         if: always()
         run: |
